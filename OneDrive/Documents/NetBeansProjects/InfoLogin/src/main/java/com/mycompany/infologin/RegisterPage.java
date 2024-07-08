@@ -210,10 +210,20 @@ public class RegisterPage implements ActionListener {
                 return;
             }
         try (Connection connection = DriverManager.getConnection(dbURL, dbUser, dbPass)) {
-            String sqlcommand ="INSERT INTO users VALUES('" +fname+"', '" +mname+"', '" +lname+"', '" +email+"', '" +user+"', '" +pass+"' )";
+            String sqlcheck = "SELECT COUNT(*) FROM users WHERE username = ?";
+            PreparedStatement ps = connection.prepareStatement(sqlcheck);
+            ps.setString(1, user);
+             ResultSet rs = ps.executeQuery();
+                if (rs.next() && rs.getInt(1) > 0) {
+                    JOptionPane.showMessageDialog(null, "Username already exists", "ERROR", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+            
+            
+            String sqlins ="INSERT INTO users VALUES('" +fname+"', '" +mname+"', '" +lname+"', '" +email+"', '" +user+"', '" +pass+"' )";
             Statement st = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
-            int x = st.executeUpdate(sqlcommand);
-
+            int x = st.executeUpdate(sqlins);
+            
             if(x>0){
                 new Load();
             }

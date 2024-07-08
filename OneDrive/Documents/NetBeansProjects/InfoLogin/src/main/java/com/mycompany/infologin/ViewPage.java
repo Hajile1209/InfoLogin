@@ -27,6 +27,8 @@ public class ViewPage implements ActionListener{
     private static final String dbUser = "root";
     private static final String dbPass = "sqllewol123";
     
+    private int attempts = 0;
+    
     ViewPage(){
         Labels();
         Buttons();
@@ -52,7 +54,7 @@ public class ViewPage implements ActionListener{
         framev.add(lblRecordView);
         
         lblSearch = new JLabel("Search User:");
-        lblSearch.setBounds(40, 110, 400, 70);
+        lblSearch.setBounds(40, 120, 400, 70);
         lblSearch.setForeground(Color.WHITE);
         lblSearch.setFont(new Font("Bahnschrift Condensed", Font.PLAIN, 18));
         framev.add(lblSearch);
@@ -144,6 +146,7 @@ public class ViewPage implements ActionListener{
     public void Textarea(){
         txtSearch = new JTextArea();
         txtSearch.setBounds(790, 230, 455, 435);
+        txtSearch.setFont(new Font("Arial", Font.PLAIN, 20));
         txtSearch.setEditable(false);
         framev.add(txtSearch);
     }
@@ -198,34 +201,33 @@ public class ViewPage implements ActionListener{
             tbl.addRow(row);
         }
     }
-    
-    private void searchUser(String fname, String lname){
+     private void searchUser(String fname, String lname) {
         ArrayList<String[]> userList = new ArrayList<>();
         try (Connection connection = DriverManager.getConnection(dbURL, dbUser, dbPass)) {
-            String sqlcommand =("SELECT * FROM users WHERE First_Name = ? AND Last_Name = ?");
+            String sqlcommand = ("SELECT * FROM users WHERE First_Name = ? AND Last_Name = ?");
             PreparedStatement pst = connection.prepareStatement(sqlcommand);
             pst.setString(1, fname);
             pst.setString(2, lname);
             ResultSet rs = pst.executeQuery();
-            
-            if(rs.next()){
-            String searchResult = "First Name: " + rs.getString("First_Name") + "\n" + "\n" +
-            "Middle Name: " + rs.getString("Middle_Name") + "\n" + "\n" +
-            "Last Name: " + rs.getString("Last_Name") + "\n" +"\n" +
-            "Email: " + rs.getString("Email");
-            txtSearch.setText(searchResult);
-            txtSearch.append("\n" + "\n" + "Username: "+rs.getString("Username"));
-            txtSearch.append("\n" + "\n" + "Password: "+rs.getString("Pass_word"));
-            txtSearch.setFont(new Font("Arial", Font.PLAIN, 20));
+
+            if (rs.next()) {
+                String searchResult = "\n" + "First Name: " + rs.getString("First_Name") + "\n" + "\n" +
+                                      "Middle Name: " + rs.getString("Middle_Name") + "\n" +"\n" +
+                                      "Last Name: " + rs.getString("Last_Name") + "\n" + "\n" +
+                                      "Email: " + rs.getString("Email")+ "\n" +"\n" ;
+                txtSearch.setText(searchResult);
+                if (btnDelete.isVisible()) {
+                txtSearch.append("Username: " + rs.getString("Username")+ "\n" + "\n");
+                txtSearch.append("Password: " + rs.getString("Pass_word"));
             }
-            else{
-                JOptionPane.showMessageDialog(null, "There's No Record ", "No Record", JOptionPane.ERROR_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(null, "There's No Record", "No Record", JOptionPane.ERROR_MESSAGE);
             }
-            
-    }catch(Exception e){
-        e.printStackTrace();
+
+        } catch (Exception e) {
+            e.printStackTrace();
             JOptionPane.showMessageDialog(null, "Database Not Connected", "Database Not Connected", JOptionPane.ERROR_MESSAGE);
-    }
+        }
     }
     
     private void deleteUser(String username) {
@@ -268,16 +270,19 @@ public class ViewPage implements ActionListener{
                 tbRecord.setDefaultEditor(Object.class, null);
                 tbRecord.getColumnModel().addColumn(usernameColumn);
                 tbRecord.getColumnModel().addColumn(passwordColumn);
-                String[] searchResults = txtSearch.getText().split("\n");
-                String username = searchResults[searchResults.length - 2];
-                String password = searchResults[searchResults.length - 1];
-                txtSearch.append("\n" + username + "\n" + password);
+                
                 
             }
             else{
-                JOptionPane.showMessageDialog(null, "Wrong Code", "WARNING!", JOptionPane.ERROR_MESSAGE);
-            }
+                attempts++;
+                if(attempts >=3){
+                    new Loading();
+                }
+                else{
+                    JOptionPane.showMessageDialog(null, "Wrong Code", "WARNING!", JOptionPane.ERROR_MESSAGE);
+                }
                     
+            }
         }
         else if(e.getSource() == btnDelete){
             int selectedRow = tbRecord.getSelectedRow();
